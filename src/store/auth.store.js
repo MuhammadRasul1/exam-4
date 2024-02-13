@@ -23,7 +23,7 @@ class AuthStore {
     makePersistable(this, {
       name: "auth",
       storage: window.localStorage,
-      properties: ["isAuth", "userData"]
+      properties: ["isAuth", "userData", "has_permission", "newData", "userId"]
     });
   }
 

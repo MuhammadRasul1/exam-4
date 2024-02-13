@@ -18,7 +18,6 @@ export const useMainProps = () => {
     })
   };
 
-
   const {mutateAsync} = useMutation({mutationFn: (id) => request.delete(`users/${id}`)})
   const handleDeleteUser = (id) => {
     mutateAsync(id)
