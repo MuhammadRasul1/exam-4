@@ -1,24 +1,27 @@
 import { Button } from '@chakra-ui/react';
-import { useDeleteUser, useGetUsers, useGivePermission } from 'api';
 import { format } from 'date-fns';
+import { useMutation, useQuery } from 'react-query';
 import { useNavigate } from 'react-router-dom';
+import request from 'services/httpRequest';
+import { authStore } from 'store/auth.store';
 
 export const useMainProps = () => {
   const navigate = useNavigate();
 
-  const givePermission = useGivePermission();
+  const createUsers = useQuery({queryKey: ['user'], queryFn: () => request.get('users').then(res => res.data)})
 
-  const { data: users, refetch } = useGetUsers();
-
+  const { mutate } = useMutation({mutationFn: (id) => request.patch(`auth/grant-permission/${id}`)})
   const handleGivePermission = (id) => {
-    givePermission.mutate(id);
-    refetch()
+    mutate(id, {
+      onSuccess: 
+        authStore.hasPermission({user_id: id})
+    })
   };
 
-  const deleteUser = useDeleteUser();
+
+  const {mutateAsync} = useMutation({mutationFn: (id) => request.delete(`users/${id}`)})
   const handleDeleteUser = (id) => {
-    deleteUser.mutate(id);
-    refetch()
+    mutateAsync(id)
   };
 
   const columns = [
@@ -72,20 +75,12 @@ export const useMainProps = () => {
     },
   ];
 
-  const data = users?.users?.map((user) => {
-    return {
-      key: user.id,
-      created_at: user?.created_at,
-      has_permission: user?.has_permission,
-      id: user?.id,
-      login_name: user?.login_name,
-      type: user?.type,
-    };
-  });
+  authStore.hasNewData(createUsers?.data?.data?.users)
+  const data = authStore.newData
 
   return {
     columns,
     data,
-    refetch
+    navigate,
   };
 };
